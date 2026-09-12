@@ -15,20 +15,27 @@ st.write("Registrá tus movimientos, controlá tu saldo y visualizá el rendimie
 
 tab1, tab2, tab3 = st.tabs(["📝 Registro de Movimientos", "💵 Saldo Disponible", "📈 Rendimiento de Inversiones"])
 
+# --- APARTADO 1: REGISTRO DE MOVIMIENTOS ---
 with tab1:
     st.header("Ingresar Nuevo Movimiento")
+    
     with st.form("form_movimientos", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
             tipo = st.radio("Tipo de movimiento", ["Ingreso ⬆️", "Egreso ⬇️"])
             monto = st.number_input("Monto ($)", min_value=0.0, step=1000.0)
         with col2:
-            categoria = st.selectbox("Categoría", ["Sueldo", "Ventas", "Comida", "Transporte", "Servicios", "Ocio", "Otro"])
+            # CAMBIO AQUÍ: Ahora es un campo de texto libre para escribir lo que quieras
+            categoria = st.text_input("Categoría", placeholder="Ej: Supermercado, Alquiler, Gimnasio...")
             fecha = st.date_input("Fecha", date.today())
+            
         submit_movimiento = st.form_submit_button("Registrar")
 
     if submit_movimiento and monto > 0:
-        nuevo_mov = pd.DataFrame({'Fecha': [fecha], 'Tipo': [tipo], 'Categoría': [categoria], 'Monto': [monto]})
+        # Si no escribe nada en categoría, le asignamos "Sin Categoría" por defecto
+        cat_final = categoria.strip() if categoria.strip() != "" else "Sin Categoría"
+        
+        nuevo_mov = pd.DataFrame({'Fecha': [fecha], 'Tipo': [tipo], 'Categoría': [cat_final], 'Monto': [monto]})
         st.session_state.movimientos = pd.concat([st.session_state.movimientos, nuevo_mov], ignore_index=True)
         st.success("¡Movimiento registrado con éxito!")
 
@@ -38,6 +45,7 @@ with tab1:
     else:
         st.info("No hay movimientos registrados todavía.")
 
+# --- APARTADO 2: SALDO DISPONIBLE ---
 with tab2:
     st.header("Dinero Disponible")
     if not st.session_state.movimientos.empty:
@@ -54,6 +62,7 @@ with tab2:
         st.metric("Saldo Líquido", "$0.00")
         st.info("Registrá ingresos y egresos para ver tu saldo.")
 
+# --- APARTADO 3: INVERSIONES ---
 with tab3:
     st.header("Rendimiento de Inversiones")
     st.write("Registrá el monto total que tenés en inversiones hoy para ver cómo crece con el tiempo.")
